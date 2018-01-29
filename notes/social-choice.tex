@@ -1,0 +1,205 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{researchpack}
+
+\usepackage{xcolor}
+\newcommand{\andrea}[1]{{\bf \textcolor{blue}{{Andrea: #1}}}}
+\newcommand{\stefano}[1]{{\bf \textcolor{violet}{{Stefano: #1}}}}
+\newcommand{\bereket}[1]{{\bf \textcolor{red}{{Bereket: #1}}}}
+
+\title{Social Elicitation}
+
+\begin{document}
+\maketitle
+
+\paragraph{Setting.} We have:
+
+\begin{itemize}
+
+    \item A set of configurations $\calX$ implicitly defined by hard constraints.
+
+    \item A configuration $\vx \in \calX$ is a vector of $N$ 0-1 attributes.
+
+    \item A set of users $u \in \{1, \ldots, M\}$.
+
+    \item Users have true preferences $\vw^u_* \in \bbR^N_+$.
+
+    \item Users have learned preferences $\vw^u \in \bbR^N_+$.  These may be
+        learned using multi-user setmargin.
+
+    \item Let $W \in \bbR^{N \times M}_+$ be the matrix obtained by stacking
+        the preference vectors side-by-side. $W_*$ is the analogue for the
+        true preferences.
+
+    \item We assume that the weights $W$ are observed.
+
+    \item The aggregate preference of the users \emph{as a group} are
+        defined as a function $f$ of $W$.
+
+        Initially, we will focus on linear combinations:
+        %
+        $$ f(\vx;W) := \sum_{u=1}^M \omega_u \langle \vw^u, \vx \rangle $$
+
+        Linear combinations can capture the contribution of different users
+        to the overall utility of configurations.
+
+    \item Our goal is to learn the parameters $\vomega \in \bbR^M$ from
+        collective, group-wise feedback.
+
+\end{itemize}
+
+\paragraph{Collective feedback.} The overall idea is:
+
+\begin{itemize}
+
+    \item Feedback is collective: when queried with a set of $S$ configurations
+        $\vx^1, \ldots, \vx^S$, the group indicates the overall most preferred
+        configuration, say $\vx^i$.
+
+        (Let's just use $S = 2$ for starters.)
+
+    \item We update the user contributions $\vomega$ to $f$ using the
+        feedback: users whose $\vw^u$ ranks $\vx^i$ high are most important,
+        and users who rank $\vx^i$ low are less important.
+
+    \item Feedback: choosing $\vx^i$ out of the $S$ query configurations
+        amounts to a set of $S - 1$ ranking constraints of the form:
+        %
+        \begin{align*}
+            \forall j \in [S], j \ne i
+                & \quad f(\vx^i) \succcurlyeq f(\vx^j)    \\
+                & \quad \Longleftrightarrow \langle \sum_{u=1}^M \omega_u \vw^u, \vx^i \rangle \ge \langle \sum_{u=1}^M \omega_u \vw^u, \vx^j \rangle \\
+                & \quad \Longleftrightarrow  \sum_{u=1}^M \omega_u \langle \vw^u, \vx^i \rangle \ge \sum_{u=1}^M \omega_u \langle \vw^u, \vx^j \rangle \\
+                & \quad \Longleftrightarrow  \sum_{u=1}^M \omega_u \langle \vw^u, \vx^i - \vx^j \rangle \ge 0
+        \end{align*}
+        %
+        The gradient of this expression w.r.t. $\omega_u$ for a single pair
+        $i, j$ is:
+        %
+        $$ \frac{\partial}{\partial \omega_u} \sum_u \omega_u \langle \vw^u, \vx^i - \vx^j \rangle = \langle \vw^u, \vx^i - \vx^j \rangle $$
+
+        This leads to a Perceptron update of the form:
+        %
+        $$ \omega^{t+1}_u \gets \omega^t_u + \eta \sum_{j \ne i} \langle \vw^u, \vx^i - \vx^j \rangle $$
+        %
+        or, more coincisely:
+        %
+        $$ \vomega^{t+1} \gets \vomega^t + \eta W^\top \sum_{j \ne i} (\vx^i - \vx^j) $$
+        %
+        where $\eta$ is the step size (just $\frac{2}{S(S - 1)}$ for starters).
+
+    \item The (initial) algorithm is as follows:
+
+        \begin{itemize}
+
+            \item Initialize $\vomega^1$ to zero (or at random, e.g. from a
+                standard Normal distribution).
+
+            \item Select a set of $S$ objects with maximal utility and
+                diversity, for instance by solving:
+                %
+                \begin{align*}
+                    \max_{\vx^1, \ldots, \vx^2}
+                        & \;\; \lambda \sum_{i=1}^S f(\vx^i) + (1 - \lambda) \sum_{i < j} \|\vx^i - \vx^j\|_1 \\
+                    \text{s.t.}
+                        & \;\; f(\vx^i) \ne f(\vx^j)
+                            & \forall i,j \in [S], i < j
+                \end{align*}
+                %
+                where $f$ is computed using the current value for $\vomega$.
+                Here $\lambda \in [0, 1]$ is a user-provided hyper-parameter,
+                and $\|\cdot\|_1$ is the $\ell_1$ norm, i.e.:
+                %
+                $$ \|\vx\|_1 := \sum_{z=1}^N |x_z| $$
+                %
+                Note that:
+                %
+                $$ \|\vx^i - \vx^j\|_1 = \sum_{z=1}^N |x^i_z - x^j_z| = \sum_{z=1}^N \max \{x^i_z - x^j_z, x^j_z - x^i_z\} $$
+
+                Encoding the above as a MILP problem is a bit tricky; here
+                is a derivation for the $S=2$ case (the others are similar):
+                %
+                \begin{align*}
+                    \max_{\vx^1, \vx^2}
+                        & \;\; \lambda (f(\vx^1) + f(\vx^2)) + (1 - \lambda) \|\vx^1 - \vx^2\|_1 \\
+                    \text{s.t.}
+                        & \;\; f(\vx^1) \ne f(\vx^2) \\
+                    = \max_{\vx^1, \vx^2}
+                        & \;\; \lambda (f(\vx^1) + f(\vx^2)) + (1 - \lambda) \sum_{z=1}^N |x^1_z - x^2_z| \\
+                    \text{s.t.}
+                        & \;\; f(\vx^1) \ne f(\vx^2) \\
+                    = \max_{\vx^1, \vx^2, \vepsilon}
+                        & \;\; \lambda (f(\vx^1) + f(\vx^2)) + (1 - \lambda) \sum_{z=1}^N \varepsilon_z \\
+                    \text{s.t.}
+                        & \;\; \varepsilon_z \le |x^1_z - x^2_z|                            & \forall z = 1, \ldots, N \\
+                        & \;\; f(\vx^1) \ne f(\vx^2) \\
+                    = \max_{\vx^1, \vx^2, \vepsilon}
+                        & \;\; \lambda (f(\vx^1) + f(\vx^2)) + (1 - \lambda) \sum_{z=1}^N \varepsilon_z \\
+                    \text{s.t.}
+                        & \;\; \varepsilon_z \le \max \{ x^1_z - x^2_z, x^2_z - x^1_z \}    & \forall z = 1, \ldots, N \\
+                        & \;\; f(\vx^1) \ne f(\vx^2) \\
+                    = \max_{\vx^1, \vx^2, \vepsilon, \vb^1, \vb^2}
+                        & \;\; \lambda (f(\vx^1) + f(\vx^2)) + (1 - \lambda) \sum_{z=1}^N \varepsilon_z \\
+                    \text{s.t.}
+                        & \;\; \varepsilon_z \le (x^1_z - x^2_z) + b^1_z \cdot M            & \forall z = 1, \ldots, N \\
+                        & \;\; \varepsilon_z \le (x^2_z - x^1_z) + b^2_z \cdot M            & \forall z = 1, \ldots, N \\
+                        & \;\; b^1_z + b^2_z = 1                                            & \forall z = 1, \ldots, N \\
+                        & \;\; f(\vx^1) \ne f(\vx^2)
+                \end{align*}
+                %
+                Here I introduced the variables $\vepsilon$ and $\vb$ to
+                linearize the problem; $M$ is supposed to be a large positive
+                constant, e.g. $M = 10^6$. This is called the ``big-$M$''
+                trick.
+
+                \stefano{@Andrea: maximizing the $\ell_1$ norm over a
+                categorical representation is equivalent to requiring that the
+                configurations $\vx^1, \ldots, \vx^S$ have a maximal number of
+                different attributes; e.g. if $\vx^1$ and $\vx^2$ differ in
+                all attributes, regardless of the actual values, they achieve
+                maximal $\ell_1$ distance.}
+
+                This can be done \emph{incrementally}: select $\vx^1$ with
+                maximal aggregate utility $f$; then, for all $i = 2, \ldots,
+                S$, select $\vx^i$ with maximal aggregate utility $f$ and
+                diversity from $\vx^1, \ldots, \vx^{i-1}$. This should be
+                much faster.
+
+                \stefano{@Andrea, @Bereket: improvements are welcome.}
+
+            \item Use the Perceptron update above to obtain $\vomega^{t+1}$.
+
+            \item Repeat until convergence or a maximum number of iterations
+                $T$ elapsed.
+
+        \end{itemize}
+
+\end{itemize}
+
+\paragraph{Competitors.}
+
+WRITEME
+
+\paragraph{Experiments.}
+
+\begin{itemize}
+
+    \item The group is simulated using a Plackett-Luce user response model,
+        see the paper.
+
+        \stefano{This may be sub-optimal for groupwise-feedback; suggestions
+        are welcome.}
+
+\end{itemize}
+
+\paragraph{Related work.}
+
+\begin{itemize}
+
+    \item \stefano{@Bereket: please add here the  relevant literature that
+        you found, I'll do the same as time permits.}
+    \item \bereket{\cite{boutilier2011preference}}
+\end{itemize}
+
+\bibliographystyle{unsrt}
+\bibliography{social-choice}
+\end{document}
