@@ -7,3 +7,7 @@ The work is done as an extension of the Constructive Preference Elicitation for 
 ### Read the Thesis:
 
 [Constructive Social Choice With Setwise max-margin](https://github.com/Bekyilma/Master_Thesis/blob/master/Thesis%20document/Master_Thesis.pdf)
+
+### Thesis defence slides
+
+[Thesis defence slides](https://github.com/Bekyilma/Master_Thesis/blob/master/Defense%20slides/Thesis_defence%20slides.pdf)
