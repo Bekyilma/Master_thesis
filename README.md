@@ -4,6 +4,15 @@ personal preferences of individuals in a group generating entirely novel instanc
 
 The work is done as an extension of the Constructive Preference Elicitation for Multiple Users with Setwise Max-margin. Checkout the social choise branch of [Setmargin project](https://github.com/stefanoteso/musm-adt17/tree/socialchoice)
 
+### Read the Thesis:
+
+[Constructive Social Choice With Setwise max-margin](https://github.com/Bekyilma/Master_Thesis/blob/master/Thesis%20document/Master_Thesis.pdf)
+
+### Thesis defence slides
+
+[Thesis defence slides](https://github.com/Bekyilma/Master_Thesis/blob/master/Defense%20slides/Thesis_defence%20slides.pdf)
+
+
 ## Requirements
 
 <table>
@@ -77,10 +86,3 @@ The work is done as an extension of the Constructive Preference Elicitation for 
 
 This code  works on Python 3.5 or later.
 
-### Read the Thesis:
-
-[Constructive Social Choice With Setwise max-margin](https://github.com/Bekyilma/Master_Thesis/blob/master/Thesis%20document/Master_Thesis.pdf)
-
-### Thesis defence slides
-
-[Thesis defence slides](https://github.com/Bekyilma/Master_Thesis/blob/master/Defense%20slides/Thesis_defence%20slides.pdf)
