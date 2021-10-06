@@ -80,7 +80,7 @@ This code  works on Python 3.5 or later.
 
 ### Read the Thesis:
 
-[Constructive Social Choice With Setwise max-margin](https://github.com/Bekyilma/Master_Thesis/blob/master/Thesis%20document/Master_Thesis.pdf)
+[Constructive Social Choice With Setwise max-margin](https://drive.google.com/file/d/1JOP9ZnPhagiZuhJM86x0F7Q2GfhjpoSY/view?usp=sharing)
 
 ### Thesis defence slides
 
