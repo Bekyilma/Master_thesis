@@ -5,6 +5,10 @@ personal preferences of individuals in a group generating entirely novel instanc
 The work is done as an extension of the Constructive Preference Elicitation for Multiple Users with Setwise Max-margin. Checkout the social choise branch of [Setmargin project](https://github.com/stefanoteso/musm-adt17/tree/socialchoice)
 
 
+<p align="center">
+<img width="1000"  src="/logs/Master.png"/> 
+</p>
+
 ## Requirements
 
 <table>
