@@ -6,7 +6,7 @@ The work is done as an extension of the Constructive Preference Elicitation for 
 
 
 <p align="center">
-<img width="1000"  src="/logs/Master.png"/> 
+<img width="1000"  src="/logs/Master1.png"/> 
 </p>
 
 ## Requirements
